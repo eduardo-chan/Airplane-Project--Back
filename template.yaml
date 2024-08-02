@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Aplicación Serverless para CRUD de Aviones'
+
+Resources:
+  CreateAirplaneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      CodeUri: modules/create_airplane/
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: planes-new
+      Events:
+        CreateAirplaneApi:
+          Type: Api
+          Properties:
+            Path: /airplanes
+            Method: POST
+            RestApiId:
+              Ref: AirplaneApi
+
+  GetAirplaneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      CodeUri: modules/get_airplane/
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: planes-new
+      Events:
+        GetAirplaneApi:
+          Type: Api
+          Properties:
+            Path: /airplanes/{id}
+            Method: GET
+            RestApiId:
+              Ref: AirplaneApi
+
+  UpdateAirplaneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      CodeUri: modules/update_airplane/
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: planes-new
+      Events:
+        UpdateAirplaneApi:
+          Type: Api
+          Properties:
+            Path: /airplanes/update
+            Method: PUT
+            RestApiId:
+              Ref: AirplaneApi
+
+  DeleteAirplaneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      CodeUri: modules/delete_airplane/
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: planes-new
+      Events:
+        DeleteAirplaneApi:
+          Type: Api
+          Properties:
+            Path: /airplanes/{id}
+            Method: DELETE
+            RestApiId:
+              Ref: AirplaneApi
+
+  GetAllAirplanesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      CodeUri: modules/get_all_airplanes/
+      MemorySize: 128
+      Timeout: 30
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: planes-new
+      Events:
+        GetAllAirplanesApi:
+          Type: Api
+          Properties:
+            Path: /airplanes
+            Method: GET
+            RestApiId:
+              Ref: AirplaneApi
+
+  AirplaneApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  PlanesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: planes-new
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
